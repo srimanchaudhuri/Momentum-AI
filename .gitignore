@@ -1,4 +1,10 @@
-node_modules
-# Keep environment variables out of version control
-.env
-dist
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
