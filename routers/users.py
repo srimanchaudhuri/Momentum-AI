@@ -1,25 +1,12 @@
-"""User CRUD routes."""
+"""User routes — profile management (creation handled by /api/auth/signup)."""
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from models.user import UserCreate, UserListResponse, UserResponse, UserUpdate
+from middleware.auth import get_current_user
+from models.user import UserListResponse, UserResponse, UserUpdate
 from services import user_service
 
 router = APIRouter()
-
-
-# ---------------------------------------------------------------------------
-# CREATE
-# ---------------------------------------------------------------------------
-
-@router.post(
-    "/",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a new user",
-)
-async def create_user(payload: UserCreate):
-    return await user_service.create_user(payload)
 
 
 # ---------------------------------------------------------------------------
@@ -31,7 +18,10 @@ async def create_user(payload: UserCreate):
     response_model=UserResponse,
     summary="Get a user by ID",
 )
-async def get_user(user_id: str):
+async def get_user(
+    user_id: str,
+    _current_user: dict = Depends(get_current_user),
+):
     return await user_service.get_user_by_id(user_id)
 
 
@@ -47,6 +37,7 @@ async def get_user(user_id: str):
 async def list_users(
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
+    _current_user: dict = Depends(get_current_user),
 ):
     users, total = await user_service.list_users(page, per_page)
     return UserListResponse(users=users, total=total, page=page, per_page=per_page)
@@ -61,7 +52,11 @@ async def list_users(
     response_model=UserResponse,
     summary="Update a user",
 )
-async def update_user(user_id: str, payload: UserUpdate):
+async def update_user(
+    user_id: str,
+    payload: UserUpdate,
+    _current_user: dict = Depends(get_current_user),
+):
     update_data = payload.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(
@@ -80,5 +75,8 @@ async def update_user(user_id: str, payload: UserUpdate):
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a user",
 )
-async def delete_user(user_id: str):
+async def delete_user(
+    user_id: str,
+    _current_user: dict = Depends(get_current_user),
+):
     await user_service.delete_user(user_id)

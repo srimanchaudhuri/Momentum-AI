@@ -35,3 +35,17 @@ class InvalidIdError(AppException):
     def __init__(self, value: str = ""):
         detail = f"Invalid ID format: '{value}'." if value else "Invalid ID format."
         super().__init__(detail=detail, status_code=400)
+
+
+class AuthenticationError(AppException):
+    """Raised when credentials are invalid or a token is expired/malformed."""
+
+    def __init__(self, detail: str = "Invalid credentials."):
+        super().__init__(detail=detail, status_code=401)
+
+
+class AuthorizationError(AppException):
+    """Raised when a user tries to access a resource they don't own."""
+
+    def __init__(self, detail: str = "You do not have permission to access this resource."):
+        super().__init__(detail=detail, status_code=403)

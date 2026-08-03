@@ -7,6 +7,7 @@ from bson import ObjectId
 from app.database import get_database
 from app.exceptions import DuplicateError, InvalidIdError, NotFoundError
 from app.logger import get_logger
+from app.security import hash_password
 from models.user import UserCreate, UserUpdate
 
 logger = get_logger(__name__)
@@ -41,8 +42,11 @@ async def create_user(payload: UserCreate) -> dict:
         raise DuplicateError("A user with this email already exists.")
 
     now = datetime.now(timezone.utc)
+    data = payload.model_dump()
+    data["password"] = hash_password(data["password"])
     document = {
-        **payload.model_dump(),
+        **data,
+        "is_active": True,
         "created_at": now,
         "updated_at": now,
     }
@@ -50,7 +54,9 @@ async def create_user(payload: UserCreate) -> dict:
     result = await collection.insert_one(document)
     created = await collection.find_one({"_id": result.inserted_id})
     logger.info("User created: %s", result.inserted_id)
-    return _serialize(created)
+    created = _serialize(created)
+    created.pop("password", None)
+    return created
 
 
 async def get_user_by_id(user_id: str) -> dict:
@@ -64,7 +70,9 @@ async def get_user_by_id(user_id: str) -> dict:
     user = await _collection().find_one({"_id": oid})
     if not user:
         raise NotFoundError("User", user_id)
-    return _serialize(user)
+    user = _serialize(user)
+    user.pop("password", None)
+    return user
 
 
 async def list_users(page: int, per_page: int) -> tuple[list[dict], int]:
@@ -114,3 +122,12 @@ async def delete_user(user_id: str) -> None:
     if result.deleted_count == 0:
         raise NotFoundError("User", user_id)
     logger.info("User deleted: %s", user_id)
+
+
+async def get_user_by_email(email: str) -> dict | None:
+    """Fetch a user by email. Returns None if not found."""
+    user = await _collection().find_one({"email": email})
+    if user:
+        user = _serialize(user)
+        user.pop("password", None)
+    return user
