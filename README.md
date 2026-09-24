@@ -93,7 +93,7 @@ Daily reminders. Weekly summaries. Milestone celebrations. Deadline warnings. St
 |---|---|
 | **Framework** | FastAPI (async, high-performance) |
 | **Database** | MongoDB with PyMongo Async API |
-| **AI** | Google Gemini (structured output) |
+| **AI** | Google Gemini (structured output) · LlamaIndex (retrieval, indexing) |
 | **Auth** | JWT (access + refresh tokens) + bcrypt |
 | **Scheduling** | APScheduler (daily reminders, weekly evaluations) |
 | **Validation** | Pydantic v2 with strict schemas |
@@ -163,6 +163,7 @@ The API docs are available at **http://localhost:8000/docs** 🎉
 Momentum-AI/
 ├── main.py                 # App entry point
 ├── app/                    # Core wiring (config, DB, auth, logging)
+├── ai/                     # LlamaIndex layer (embeddings, llm, index, ingestion, chat)
 ├── models/                 # Pydantic request/response schemas
 ├── services/               # Business logic (HTTP-agnostic)
 ├── routers/                # Thin API controllers

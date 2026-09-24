@@ -1,6 +1,8 @@
 """Authentication routes — signup, login, refresh, me."""
 
+import email
 from fastapi import APIRouter, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
 
 from middleware.auth import get_current_user
 from models.auth import LoginRequest, RefreshRequest, SignupRequest, TokenResponse
@@ -31,8 +33,12 @@ async def signup(payload: SignupRequest):
     response_model=TokenResponse,
     summary="Login with email and password",
 )
-async def login(payload: LoginRequest):
-    return await auth_service.login(email=payload.email, password=payload.password)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+
+    return await auth_service.login(
+        email=form_data.username,
+        password=form_data.password 
+    )
 
 
 @router.post(
